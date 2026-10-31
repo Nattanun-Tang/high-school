@@ -1,6 +1,6 @@
 ---
 name: educational-app-builder-pro
-description: Build or modify polished interactive educational web apps from the bundled professional starter. Use when the user explicitly wants an educational web app, interactive learning experience, simulation, explorer, diagram, practice tool, quiz, timeline, game, or digital learning activity implemented as web files. Preserve the 1920x1080 canvas contract, series visual system (landing type/image sizes, red app header, shared colors), protected content shell, and file architecture while allowing topic-specific creative layouts inside #appLayout. For mathematics, render notation with KaTeX. Do not trigger for requests that only ask for lesson ideas, question writing, explanations, or non-web educational content.
+description: Build or modify polished interactive educational web apps from the bundled professional starter. Use when the user explicitly wants an educational web app, interactive learning experience, simulation, explorer, diagram, practice tool, quiz, timeline, game, or digital learning activity implemented as web files. Preserve the full-width shell (capped at 1920 px, no 16:9 letterbox), series visual system (landing type/image sizes, red app header, shared colors), protected content shell, and file architecture while allowing topic-specific creative layouts inside #appLayout. For mathematics, render notation with KaTeX. Do not trigger for requests that only ask for lesson ideas, question writing, explanations, or non-web educational content.
 ---
 
 # Educational App Builder Pro
@@ -41,7 +41,7 @@ The series contains two views:
   - Line 2 (`.landing__title` / `#landingTitle`): the piece title (ชื่อชิ้นงาน)
   - Start CTA (`.landing__start` / `#startButton`): label **`เริ่ม`**
   - Cover image: **do not** pick, invent, generate, or wire a `src` unless the user explicitly says which file/path to use; keep the visual column reserved empty.
-- **App page** — 1920×1080 white card on gray stage; red header with white title only (**no** หน้าหลัก / `#homeButton`); protected content shell. Topic-specific learning UI belongs inside `#appLayout`.
+- **App page** — full-width white card on gray stage (width `min(1920px, 100vw)`, height fills the viewport); red header with white title only (**no** หน้าหลัก / `#homeButton`); protected content shell. Topic-specific learning UI belongs inside `#appLayout`.
 
 Preserve the series visual hierarchy and accessibility behavior while adapting text and app content. Do not invent a second brand palette for sibling apps in the set.
 
@@ -49,12 +49,23 @@ Read `references/starter-contract.md` before modifying the starter architecture.
 
 ## Width Budget — Critical Layout Constraint
 
-The design canvas is **1920×1080**. Anything wider than 1920 px can be clipped by `.app-main-card { overflow: hidden }`. Design within these zones:
+The design width is **1920 px** (`--canvas-w`). The shell is **full viewport width, capped at 1920** — do **not** letterbox to 16:9. That old aspect lock caused side gutters on non-16:9 screens.
+
+| Shell property | Spec |
+|---|---|
+| Width | `min(calc(var(--canvas-w) * 1px), 100vw)` (= `min(1920px, 100vw)`) |
+| Max width | `100%` |
+| Height (default) | `100vh` / `100dvh` — fill the viewport so one-screen lessons still stretch via flex |
+| Aspect ratio | `auto` — **never** lock to 1920/1080 |
+| Centering | `margin: 0 auto` (side gutters only appear on ultrawide > 1920) |
+| Overflow | `hidden` by default; tall lessons may unlock to `height: auto` + page scroll in their own `styles.css` |
+
+Anything wider than 1920 px can be clipped by `.app-main-card { overflow: hidden }`. Design within these zones at the 1920 design width:
 
 | Zone | x-range (design px) | Width |
 |---|---:|---:|
-| `.app-main-card` | 0 → 1920 | 1920 px |
-| `.app-content` | 72 → 1848 | **1776 px** |
+| `.app-main-card` | 0 → 1920 | up to **1920 px** (or full `100vw` when narrower) |
+| `.app-content` | 72 → 1848 | **1776 px** at full design width |
 | Utility / floating-tool zone | 1759 → 1896 | reserve when a tall floating tool is present |
 
 Rules:
@@ -66,6 +77,8 @@ Rules:
 5. Do not override `.app-content` margins unless the full inner-width budget is recalculated.
 6. Put true edge-to-edge banners as siblings of `.app-content` inside `.app-main-card`, not as children.
 7. When a floating utility is used, avoid placing tall right-aligned content in its reserved zone.
+8. Do not reintroduce `aspect-ratio: 1920/1080` or a height formula of `100vw * 1080/1920` on `.app-main-card` — that recreates the side-gutter letterbox.
+9. Prefer `width: min(calc(var(--canvas-w) * 1px), 100vw)` over bare `width: 100%` when overriding the shell, so ultrawide screens stay capped and centered.
 
 ## Protected Shell
 
@@ -116,7 +129,7 @@ Canonical tokens live in `base.css` (`:root` + landing/app shell). App-specific 
 
 | Token | Value | Role |
 |---|---|---|
-| Canvas | **1920×1080** | Design coordinate system (`.app-main-card`) |
+| Canvas width | **1920** (`--canvas-w`) | Max card width; height fills viewport (not a fixed 1080 lock) |
 | `--font-ui` | `"TH Sarabun New", "Sarabun", Arial, sans-serif` | All UI / content text |
 | `--ink` | `#18202a` | Primary body text |
 | `--muted` | `#66717f` | Secondary / supporting text |
@@ -192,9 +205,10 @@ Do **not** auto-pick a starter/default cover, stock photo, or AI-generated image
 
 | Element | Spec |
 |---|---|
-| `.app-page` | Centered grid; background **`#e9edf1`**; min-height 100vh |
-| `.app-main-card` | **1920×1080** aspect lock; `overflow: hidden`; background `--surface` `#ffffff` |
-| Width formula | `min(1920px, 100vw, 100vh * 1920/1080)` (and matching height) so the card never crops oddly |
+| `.app-page` | Centered grid; background **`#e9edf1`**; min-height 100vh / 100dvh |
+| `.app-main-card` | Full-width shell capped at 1920; `overflow: hidden`; background `--surface` `#ffffff` |
+| Width formula | `min(calc(var(--canvas-w) * 1px), 100vw)` — **no** 16:9 / aspect letterbox |
+| Height formula | `100vh` / `100dvh` by default; tall lessons may set `height: auto` + scroll in `styles.css` |
 
 **Header bar**
 
@@ -578,7 +592,7 @@ When the app uses a modal, definition popup, or formulas overlay, use the **Stan
 
 ## Responsive Behavior
 
-Treat 1920×1080 as the design coordinate system, not the only viewport. Preserve the width budget at desktop scale and adapt layouts for smaller screens. Allow multi-column learning layouts to collapse cleanly. Prevent horizontal clipping, text collisions, inaccessible controls, and off-screen dialogs.
+Treat **1920 px** as the design width (content budget), not a fixed TV-sized card. The shell fills the viewport width up to 1920 and the viewport height by default — no 16:9 letterboxing. Preserve the inner 1776 px content budget at desktop scale and adapt layouts for smaller screens. Allow multi-column learning layouts to collapse cleanly. Prevent horizontal clipping, text collisions, inaccessible controls, and off-screen dialogs. Tall content may unlock card height and use page scroll rather than forcing everything into 1080 px.
 
 ## Code Quality Contract
 
@@ -594,7 +608,7 @@ Deliver production-minded code:
 - Avoid unnecessary dependencies. Load external libraries only when they materially support the learning experience.
 - Handle empty, invalid, boundary, and repeated-input states.
 - Keep console free of uncaught errors and missing-resource failures.
-- Verify layout at the 1920×1080 design size and at smaller responsive widths.
+- Verify layout at full design width (1920, or `100vw` when narrower) and at smaller responsive widths; confirm there are no false side gutters from an aspect lock.
 - For dynamic visualizations, keep labels, legends, mathematical values, and interaction feedback synchronized with state.
 
 ## Verification Checklist
@@ -604,12 +618,12 @@ Before handoff, verify:
 - landing page transitions to the app correctly;
 - landing line 1 is `INTERACTIVE MATHEMATICS`, line 2 is the piece title, CTA is `เริ่ม`;
 - landing uses series type (72px red eyebrow/title), white background, and image-slot sizing rules; cover `src` is set only when the user named an image, otherwise the right slot stays empty/reserved;
-- app card is 1920×1080 with red header and white ~56px title;
+- app card is full-width up to 1920 (`min(1920px, 100vw)`), viewport-tall by default, with red header and white ~56px title — **not** a 16:9 letterboxed card;
 - app header has no หน้าหลัก / `#homeButton`;
 - shared color tokens (`--accent`, `--ink`, surfaces) match the series;
 - `#contentGrid` remains only the protected `app-content` shell;
 - topic-specific classes live inside `#appLayout`;
-- the right edge is not clipped at 1920×1080;
+- the right edge is not clipped at full design width;
 - smaller widths reflow without horizontal overflow;
 - all controls have complete states and keyboard access;
 - if step nav is present: Prev/Next are red+white when enabled and gray when disabled; Prev is disabled at step 0 / show-all, Next at last step / show-all;

@@ -38,11 +38,12 @@ Do not attach topic classes to `#contentGrid`.
 
 ## Width Budget
 
-- Canvas: 1920×1080.
-- `.app-content`: 72 px left + 72 px right margins; 1776 px usable width.
+- Design width: **1920 px** (`--canvas-w`). Shell width is `min(1920px, 100vw)` — full viewport, capped and centered. Do **not** letterbox to 16:9 / lock `aspect-ratio: 1920/1080`.
+- Default height: `100vh` / `100dvh`. Tall lessons may unlock to `height: auto` + page scroll in their own `styles.css`.
+- `.app-content`: 72 px left + 72 px right margins; 1776 px usable width at full design width.
 - Keep `width: auto` on `.app-content`.
 - `#appLayout` may use `width: 100%` and must stay within the protected shell.
 
 ## Responsive Contract
 
-The starter uses a desktop design canvas with responsive reflow. Do not solve responsiveness by shrinking text to illegibility. Collapse columns, wrap controls, and allow vertical scrolling when needed.
+The starter uses a 1920 px design width with a full-viewport shell (no 16:9 letterbox) and responsive reflow. Do not solve responsiveness by shrinking text to illegibility. Collapse columns, wrap controls, and allow vertical scrolling when needed.
